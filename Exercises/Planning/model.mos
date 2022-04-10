@@ -1,0 +1,97 @@
+(!*******************************************************
+   Mosel Example Problems
+   ======================
+
+   file s8els.mos
+   ``````````````
+   Economic lot sizing, ELS, problem
+   (Cut generation algorithm adding (l,S)-inequalities 
+    in one or several rounds at the root node or in 
+    tree nodes)
+       
+       Modificato e semplificato - Lorenzo Castelli
+  *******************************************************!)
+
+model "S-8 ELS"
+ uses "mmxprs", "mmsystem"
+
+ parameters
+  ALG = 3                             ! Default algorithm
+ end-parameters 
+
+ declarations
+  TIMES = 1..20                             ! Range of time
+  PRODUCTS = 1..4                           ! Set of products
+
+  DEMAND: array(PRODUCTS,TIMES) of integer  ! Demand per period
+  SETUPCOST: array(TIMES) of integer        ! Setup cost per period
+  PRODCOST: array(PRODUCTS,TIMES) of real   ! Production cost per period
+  CAP: array(TIMES) of integer              ! Production capacity per period
+  D: array(PRODUCTS,TIMES,TIMES) of integer ! Total demand in periods t1 - t2
+
+  produce: array(PRODUCTS,TIMES) of mpvar   ! Production in period t
+  setup: array(PRODUCTS,TIMES) of mpvar     ! Setup in period t
+
+  solprod: array(PRODUCTS,TIMES) of real    ! Sol. values for var.s produce 
+  solsetup: array(PRODUCTS,TIMES) of real   ! Sol. values for var.s setup
+  starttime: real
+ end-declarations
+
+ initializations from "model.dat"
+  DEMAND SETUPCOST PRODCOST CAP
+ end-initializations
+
+ forall(p in PRODUCTS,s,t in TIMES) D(p,s,t):= sum(k in s..t) DEMAND(p,k)
+
+! Objective: minimize total cost
+ MinCost:= sum(t in TIMES) (SETUPCOST(t) * sum(p in PRODUCTS) setup(p,t) + 
+                            sum(p in PRODUCTS) PRODCOST(p,t) * produce(p,t) )
+
+! Satisfy the total demand
+ forall(p in PRODUCTS,t in TIMES) 
+   sum(s in 1..t) produce(p,s) >= sum (s in 1..t) DEMAND(p,s)
+
+! If there is production during t then there is a setup in t
+ forall(p in PRODUCTS, t in TIMES) 
+  produce(p,t) <= D(p,t,getlast(TIMES)) * setup(p,t)
+
+! Capacity limits
+ forall(t in TIMES) sum(p in PRODUCTS) produce(p,t) <= CAP(t)
+
+! Variables setup are 0/1
+ forall(p in PRODUCTS, t in TIMES) setup(p,t) is_binary 
+ starttime:=gettime
+
+ !Uncomment to get detailed MIP output
+ setparam("XPRS_VERBOSE", true)
+ !setparam("XPRS_PRESOLVE", 0)  
+ writeln("**************ALG=",ALG,"***************")
+
+ starttime:=gettime
+ 
+ case ALG of
+  1: setparam("XPRS_CUTSTRATEGY", 0)  ! No cuts
+  2: setparam("XPRS_PRESOLVE", 0)     ! No presolve
+  3: setparam("XPRS_MIPRELSTOP", 0.03)
+  4: setparam("XPRS_MAXTIME", 2)
+  5: setparam("XPRS_NODESELECTION", 5) ! Depth first
+ end-case
+
+ exportprob(EP_MPS,"folio_MPS",MinCost)
+
+ minimize(MinCost)                    ! Solve the problem
+ 
+ 
+                                       
+ writeln("Time: ", gettime-starttime, "sec,  Nodes: ", getparam("XPRS_NODES"),
+         ",  Solution: ", getobjval) 
+ write("Period  setup    ")
+ forall(p in PRODUCTS) write(strfmt(p,-7))
+ forall(t in TIMES) do
+  write("\n ", strfmt(t,2), strfmt(getsol(sum(p in PRODUCTS) setup(p,t)),8), "     ")
+  forall(p in PRODUCTS) write(getsol(produce(p,t)), " (",DEMAND(p,t),")  ")
+ end-do
+ writeln
+ 
+
+end-model
