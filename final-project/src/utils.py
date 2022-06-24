@@ -1,4 +1,4 @@
-from typing import Callable, Tuple
+from typing import Any, Callable, List, Tuple
 import numpy as np
 
 
@@ -15,3 +15,8 @@ def satisfies_fifo_property(f: Callable[[float], float], interval: Tuple[int], n
     for i in range(len(t)-1):
         if t[i] + f(t[i]) > t[i+1] + f(t[i+1]):
             raise Exception("f does not satisfies_fifo_property at t: ", t[i])
+
+
+def fill_like(V: List[List[Any]], fill_value: Any) -> List[List[Any]]:
+    """Returns a List of lists like V filled with fill_value"""
+    return [[fill_value for _ in range(len(V[i]))] for i in range(len(V))]
