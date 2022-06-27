@@ -1,5 +1,6 @@
 import heapq
-from typing import List
+from math import ceil
+from typing import List, Set, Tuple
 
 import numpy as np
 
@@ -41,29 +42,29 @@ def TEN_solve(V: List[List[float]], activities: List[Activity], q: List[List[flo
     l = init_l(V)
     p = fill_like(V, None)
     min_taus = min_time_per_activity(V, activities)
-    visited_vertexes = set()
-    to_visit_vertexes = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
-                         for t in range(len(V[0])) if q[0][t] <= Q]
-    heapq.heapify(to_visit_vertexes)
+    visited = set()
+    to_visit = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
+                for t in range(len(V[0])) if q[0][t] <= Q]
+    heapq.heapify(to_visit)
 
-    while len(to_visit_vertexes) > 0:
-        _, i, t = heapq.heappop(to_visit_vertexes)
-        visited_vertexes.add((i, t))
+    while len(to_visit) > 0:
+        _, i, t = heapq.heappop(to_visit)
+        visited.add((i, t))
         if i == len(activities)-1:
-            print("solved!")
+            print("Solved!")
             break
 
         completion_time = activities[i].completion_time(V[i][t])
         for t_next in range(len(V[i+1])):
-            if (i+1, t_next) in visited_vertexes:
+            if (i+1, t_next) in visited:
                 continue
             if completion_time > V[i+1][t_next]:
                 continue
-            
+
             # If the resouce consumption goes below Q we insert the vertex in the heap
             new_consumption = l[i][t] + q[i][t]
             if l[i+1][t_next] + q[i+1][t_next] > Q and new_consumption + q[i+1][t_next] <= Q:
-                heapq.heappush(to_visit_vertexes,
+                heapq.heappush(to_visit,
                                (A_star_bound(V, activities, min_taus, i+1, t_next), i+1, t_next))
 
             if new_consumption < l[i+1][t_next]:
@@ -71,3 +72,79 @@ def TEN_solve(V: List[List[float]], activities: List[Activity], q: List[List[flo
                 p[i+1][t_next] = (i, t)
 
     return (i, t), l, p
+
+
+def DDD_initialize(activities: List[Activity], q: List[List[float]]):
+    V = set()
+    for i, activity in enumerate(activities):
+        V, q = DDD_addRecursive(V, q, (i, activity.start))
+        V, q = DDD_addRecursive(V, q, (i, activity.end))
+
+    return V, q
+
+
+def time_to_index(i: int, t: float) -> int:
+    pass
+
+
+def DDD_addRecursive(V: Set[Tuple[int, float]],
+                     q: List[List[float]],
+                     activities: List[Activity],
+                     i: int, t: float, eps: float):
+
+    #t = time_to_index(i, t)
+    activity = activities[i
+                          ]
+    if (i, t) in V:
+        return V, q
+
+    V.add((i, t))
+    if t == activity.end:
+        q[i][t] = activity.resources(t)
+    else:
+        min_q = activity.resources(t)
+        t_bar = t+eps
+        while (i, t_bar) not in V:
+            if min_q < activity.resources(t_bar):
+                min_q = activity.resources(t_bar)
+            t_bar += eps
+
+        if t > activity.start:
+            t_bar = t-eps
+            min_q = activity.resources(t_bar)
+            while (i, t_bar) not in V:
+                if min_q < activity.resources(t_bar):
+                    min_q = activity.resources(t_bar)
+                t_bar -= eps
+
+    if i == len(activities)-1:
+        return V, q
+
+    else:
+        return DDD_addRecursive(V, q, activities, i+1,
+                                max(activities[i+1].end, eps*ceil(activities[i].completion_time(t)/eps)))
+
+
+def DDD_solve(V: List[List[float]], activities: List[Activity], q: List[List[float]], Q: float):
+    V, q = DDD_initialize()
+
+    while True:
+        path = TEN_solve(V, activities, q, Q)
+        if path[-1][1] == np.inf:
+            break
+
+        available_nodes = [(i, t) for i, t in path if (i, t) in V and activities[i].resources(t) > q[i, t]]
+        if len(available_nodes)>0:
+            i, t_i = available_nodes[0]
+            t = min([t for t in V[i] if t > t_i])
+            while True:
+                t = eps*ceil((t_i + t) / eps)
+                if min([activities[i].resources(t_i+i*eps) for i in range(0, t-eps, eps)]) <= q[i, t]:
+                    break 
+            
+            V, q = DDD_addRecursive(V, q, activities, i, t, eps)
+
+        if activities[i].resources(t_i) != q[i, t_i]:
+            break
+    
+    return path

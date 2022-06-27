@@ -16,7 +16,9 @@ class Activity:
         return start + self.duration(start)
 
     def discretize_time(self, eps: float) -> np.ndarray:
-        return np.arange(self.start, self.end+eps, eps)
+        times = list(np.arange(self.start, self.end, eps))
+        times.append(self.end)
+        return times
 
 
 def discretize_activity_times(activities, eps: float) -> List[List[float]]:
