@@ -1,36 +1,40 @@
 import heapq
-from typing import List
+import sys
+from typing import Any, Mapping, Sequence
 
-import numpy as np
-
-from ..utils import fill_like
 
 from ..activity import Activity
 
 
-def init_l(V: List[List[float]]) -> List[List[float]]:
+def init_l(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
     """Initializes the labels, 0 for the first activity vertexes and np.inf otherwise"""
-    l = [[0 for _ in range(len(V[0]))]]
+    l = [dict([(t, 0) for t in V[0].keys()])]
     for i in range(1, len(V)):
-        l.append([np.inf for _ in range(len(V[i]))])
-
+        l.append(dict([(t, sys.float_info.max) for t in V[i].keys()]))
     return l
 
+def init_p(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
+    """Initializes the predecessor structure to None"""
+    return [dict([(t, None) for t in v.keys()]) for v in V]
 
-def min_time_per_activity(V: List[List[float]], activities: List[Activity]) -> List[float]:
+def min_time_per_activity(V: Sequence[Mapping[int, float]], activities: Sequence[Activity]) -> Sequence[float]:
     """Returns a list with the minimum possible time to do each activity"""
-    return [min(activities[i].duration(V[i])) for i in range(len(V))]
+    return [min(activities[i].duration(list(V[i].values()))) for i in range(len(V))]
 
 
-def A_star_bound(V: List[List[float]], activities: List[Activity], min_taus: List[float], i: int, t: int):
+def A_star_bound(V: Sequence[Mapping[int, float]], activities: Sequence[Activity], min_taus: Sequence[float], i: int, t: int):
     """Lower bound on the total completion time when doing activity i at time t"""
     return activities[i].completion_time(V[i][t]) + sum(min_taus[i+1:])
 
 
-def TEN_solve(V: List[List[float]], activities: List[Activity], q: List[List[float]], Q: float):
+def TEN_solve(V: Sequence[Mapping[int, float]],
+              activities: Sequence[Activity],
+              q: Sequence[Mapping[int, float]],
+              Q: float):
     """Solves the TDASP in a Time Expanded Network, implements Algorithm 1 of the paper
     https://www.sciencedirect.com/science/article/pii/S0377221721009838?
 
+    Given n=number of activities and m=activity discred
     This implementation uses a MinHeap to keep the vertexes sorted and achieves a
     time complexity of O(n*m^2), less than the one cited in the paper O(n^2*m^2)
 
@@ -39,11 +43,11 @@ def TEN_solve(V: List[List[float]], activities: List[Activity], q: List[List[flo
     This choice preserves motonicity and was made to avoid equality comparisons between floats. 
     """
     l = init_l(V)
-    p = fill_like(V, None)
+    p = init_p(V)
     min_taus = min_time_per_activity(V, activities)
     visited = set()
     to_visit = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
-                for t in range(len(V[0])) if q[0][t] <= Q]
+                for t in V[0].keys() if q[0][t] <= Q]
     heapq.heapify(to_visit)
 
     while len(to_visit) > 0:
@@ -54,7 +58,7 @@ def TEN_solve(V: List[List[float]], activities: List[Activity], q: List[List[flo
             break
 
         completion_time = activities[i].completion_time(V[i][t])
-        for t_next in range(len(V[i+1])):
+        for t_next in V[i+1].keys():
             if (i+1, t_next) in visited:
                 continue
             if completion_time > V[i+1][t_next]:
