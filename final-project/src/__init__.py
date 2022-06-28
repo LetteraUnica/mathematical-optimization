@@ -1,4 +1,6 @@
 from .activity import *
 from .utils import *
-from .tdasp import *
 from .data_generation import *
+from .time_discretizer import *
+
+from .solvers import *
