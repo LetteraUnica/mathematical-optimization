@@ -26,14 +26,14 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
                      q: Sequence[Mapping[int, float]],
                      i: int, t: int,
                      discretizer: TimeDiscretizer):
+    if t in V[i]:
+        return V, q
 
     activity = activities[i]
     eps = discretizer.eps
     time = discretizer.activity_index_to_time(activity, t)
-    if t in V[i]:
-        return V, q
-
     V[i][t] = time
+
     if t == discretizer.activity_time_to_index(activity, activity.end):
         q[i][t] = activity.resources(time)
     else:
@@ -42,7 +42,7 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
         while t_bar not in V[i]:
             resources = activity.resources(
                 discretizer.activity_index_to_time(activity, t_bar))
-            if min_q < resources:
+            if min_q > resources:
                 min_q = resources
             t_bar += 1
         q[i][t] = min_q
@@ -54,11 +54,12 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
             while t_bar not in V[i]:
                 resources = activity.resources(
                     discretizer.activity_index_to_time(activity, t_bar))
-                if min_q < resources:
+                if min_q > resources:
                     min_q = resources
                 t_bar -= 1
-            q[i][t_bar] = min(
-                min_q, discretizer.activity_index_to_time(activity, t_bar))
+            resources = activity.resources(
+                discretizer.activity_index_to_time(activity, t_bar))
+            q[i][t_bar] = min(min_q, resources)
 
     if i == len(activities)-1:
         return V, q
@@ -76,9 +77,7 @@ def DDD_solve(activities: Sequence[Activity],
 
     while True:
         solution = TEN_solve(V, activities, q, Q)
-        print(sum([len(v) for v in V]))
         if solution is None:
-            print("sda")
             return None
         
         path = solution.compute_path()
@@ -96,7 +95,7 @@ def DDD_solve(activities: Sequence[Activity],
             while True:
                 t = (t_i + t) // 2 + (t_i + t) % 2
                 if min([activity.resources(discretizer.activity_index_to_time(activity, t_bar))
-                        for t_bar in range(t_i, t)]) > q[i][t]:
+                        for t_bar in range(t_i, t)]) > q[i][t_i]:
                     break
 
             V, q = DDD_addRecursive(V, activities, q, i, t, discretizer)
