@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, List
-
-import numpy as np
+from typing import Callable
 
 
 @dataclass
