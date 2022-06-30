@@ -1,37 +1,46 @@
 from dataclasses import dataclass
-from typing import Mapping, Sequence
+from typing import Mapping, Sequence, Set
 
 from .activity import Activity
 
 
-@dataclass
 class Solution:
-    final_activity: int
-    activities: Sequence[Activity]
-    l: Sequence[Mapping[int, float]]
-    p: Sequence[Mapping[int, int]]
-    visited_nodes: int
+    def __init__(self,
+                 final_activity: int,
+                 activities: Sequence[Activity],
+                 V: Sequence[Mapping[int, float]],
+                 p: Sequence[Mapping[int, int]],
+                 visited: Sequence[Set[int]],
+                 ):
+        self.activities = activities
+        self.V = V
+        self.n_total_nodes = sum([len(v) for v in V])
+        self.n_visited_nodes = sum([len(v) for v in visited])
+        self.path = self.init_path(final_activity, p)
 
-    def compute_path(self):
-        last = self.final_activity
+    def init_path(self, final_activity, p):
+        last = final_activity
         path = [last]
         for i in range(len(self.activities)-1, 0, -1):
-            last = self.p[i][last]
+            last = p[i][last]
             path.append(last)
 
         return path[::-1]
 
     def activity_durations(self):
-        return [a.duration(t) for a, t in zip(self.activities, self.compute_path())]
+        return [a.duration(v[t]) for a, t, v in zip(self.activities, self.path, self.V)]
 
-    def activity_resouces(self):
-        return [a.resources(t) for a, t in zip(self.activities, self.compute_path())]
+    def activity_resouce_consumption(self):
+        return [a.resources(v[t]) for a, t, v in zip(self.activities, self.path, self.V)]
 
-    def total_nodes(self):
-        return sum([len(l) for l in self.l])
+    def completion_time(self):
+        return self.activities[-1].completion_time(self.V[-1][self.path[-1]])
+
+    def resources_consumed(self):
+        return sum(self.activity_resouce_consumption())
 
     def summary(self):
-        return sum(self.activity_durations()), sum(self.activity_resouces()), self.visited_nodes
+        return self.completion_time(), self.resources_consumed(), self.n_visited_nodes
 
     def __repr__(self):
         duration, resources, nodes_visited = self.summary()

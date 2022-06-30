@@ -14,16 +14,22 @@ def init_l(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
         l.append(dict([(t, sys.float_info.max) for t in V[i].keys()]))
     return l
 
+
 def init_p(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
     """Initializes the predecessor structure to None"""
     return [dict([(t, None) for t in v.keys()]) for v in V]
 
-def min_time_per_activity(V: Sequence[Mapping[int, float]], activities: Sequence[Activity]) -> Sequence[float]:
+
+def min_time_per_activity(V: Sequence[Mapping[int, float]],
+                          activities: Sequence[Activity]) -> Sequence[float]:
     """Returns a list with the minimum possible time to do each activity"""
-    return [min(activities[i].duration(list(V[i].values()))) for i in range(len(V))]
+    return [min(a.duration(list(v.values()))) for a, v in zip(activities, V)]
 
 
-def A_star_bound(V: Sequence[Mapping[int, float]], activities: Sequence[Activity], min_taus: Sequence[float], i: int, t: int):
+def A_star_bound(V: Sequence[Mapping[int, float]],
+                 activities: Sequence[Activity],
+                 min_taus: Sequence[float],
+                 i: int, t: int) -> float:
     """Lower bound on the total completion time when doing activity i at time t"""
     return activities[i].completion_time(V[i][t]) + sum(min_taus[i+1:])
 
@@ -46,20 +52,20 @@ def TEN_solve(V: Sequence[Mapping[int, float]],
     l = init_l(V)
     p = init_p(V)
     min_taus = min_time_per_activity(V, activities)
-    visited = set()
+    visited = [set() for _ in V]
     to_visit = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
                 for t in V[0].keys() if q[0][t] <= Q]
     heapq.heapify(to_visit)
 
     while len(to_visit) > 0:
         _, i, t = heapq.heappop(to_visit)
-        visited.add((i, t))
+        visited[i].add(t)
         if i == len(activities)-1:
-            return Solution(t, activities, l, p, len(visited))
+            return Solution(t, activities, V, p, visited)
 
         completion_time = activities[i].completion_time(V[i][t])
         for t_next in V[i+1].keys():
-            if (i+1, t_next) in visited:
+            if t_next in visited[i+1]:
                 continue
             if completion_time > V[i+1][t_next]:
                 continue
