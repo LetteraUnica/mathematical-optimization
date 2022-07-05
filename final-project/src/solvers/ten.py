@@ -23,7 +23,7 @@ def init_p(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
 def min_time_per_activity(V: Sequence[Mapping[int, float]],
                           activities: Sequence[Activity]) -> Sequence[float]:
     """Returns a list with the minimum possible time to do each activity"""
-    return [min(a.duration(list(v.values()))) for a, v in zip(activities, V)]
+    return [min([a.duration(time) for time in v.values()]) for a, v in zip(activities, V)]
 
 
 def A_star_bound(V: Sequence[Mapping[int, float]],

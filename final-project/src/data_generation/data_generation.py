@@ -23,7 +23,7 @@ def ev_consumption(speed):
     return 5 + 3e-2*(speed-10)**2
 
 
-def traffic_over_space(point, sigma=20):
+def traffic_over_space(point, sigma=10):
     x, y = point
     return np.exp(-((x**2 + y**2)/sigma**2))
 

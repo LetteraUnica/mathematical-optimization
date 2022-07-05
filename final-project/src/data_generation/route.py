@@ -20,7 +20,7 @@ class Route:
         self.dx_norm = np.linalg.norm(self.dx)
 
     def travel_time(self, start_time, time_steps=100):
-        point = self.start
+        point = self.start.copy()
         time = start_time
         for _ in range(time_steps):
             traffic_level = self.traffic_model.traffic_level(point, time)
@@ -31,7 +31,7 @@ class Route:
         return (time - start_time)*60
 
     def resources_consumed(self, start_time, time_steps=100):
-        point = self.start
+        point = self.start.copy()
         time, resources = start_time, 0
         for _ in range(time_steps):
             traffic_level = self.traffic_model.traffic_level(point, time)
