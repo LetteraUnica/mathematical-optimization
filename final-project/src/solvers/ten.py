@@ -1,6 +1,6 @@
 import heapq
 import sys
-from typing import Literal, Mapping, Sequence
+from typing import Mapping, Sequence
 
 
 from ..activity import Activity
@@ -37,7 +37,7 @@ def A_star_bound(V: Sequence[Mapping[int, float]],
 def TEN_solve(V: Sequence[Mapping[int, float]],
               activities: Sequence[Activity],
               q: Sequence[Mapping[int, float]],
-              Q: float) -> Solution:
+              Q: float, *args) -> Solution:
     """Solves the TDASP in a Time Expanded Network, implements Algorithm 1 of the paper
     https://www.sciencedirect.com/science/article/pii/S0377221721009838?
 
@@ -67,8 +67,8 @@ def TEN_solve(V: Sequence[Mapping[int, float]],
         for t_next in V[i+1].keys():
             if t_next in visited[i+1]:
                 continue
-            if completion_time > V[i+1][t_next]:
-                continue
+            # if completion_time > V[i+1][t_next]:
+            #     continue
 
             # If the resouce consumption goes below Q we insert the vertex in the heap
             new_consumption = l[i][t] + q[i][t]

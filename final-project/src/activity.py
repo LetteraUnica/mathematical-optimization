@@ -8,6 +8,7 @@ class Activity:
     end: float
     duration: Callable[[float], float]
     resources: Callable[[float], float]
+    replenishment_duration: Callable[[float], float]
     name: str = None
 
     def completion_time(self, start_time: float) -> float:

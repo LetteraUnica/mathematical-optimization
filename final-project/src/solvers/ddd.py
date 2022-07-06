@@ -71,11 +71,12 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
 
 def DDD_solve(activities: Sequence[Activity],
               Q: float,
-              discretizer: TimeDiscretizer) -> Solution:
+              discretizer: TimeDiscretizer,
+              TEN_solver = TEN_solve) -> Solution:
     V, q = DDD_initialize(activities, discretizer)
 
     while True:
-        solution = TEN_solve(V, activities, q, Q)
+        solution = TEN_solver(V, activities, q, Q, discretizer)
         if solution is None:
             return None
 
