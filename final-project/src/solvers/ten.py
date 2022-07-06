@@ -61,14 +61,14 @@ def TEN_solve(V: Sequence[Mapping[int, float]],
         _, i, t = heapq.heappop(to_visit)
         visited[i].add(t)
         if i == len(activities)-1:
-            return Solution(t, activities, V, p, visited)
+            return Solution(t, activities, V, l, p, visited)
 
         completion_time = activities[i].completion_time(V[i][t])
         for t_next in V[i+1].keys():
             if t_next in visited[i+1]:
                 continue
-            # if completion_time > V[i+1][t_next]:
-            #     continue
+            if completion_time > V[i+1][t_next]:
+                continue
 
             # If the resouce consumption goes below Q we insert the vertex in the heap
             new_consumption = l[i][t] + q[i][t]
