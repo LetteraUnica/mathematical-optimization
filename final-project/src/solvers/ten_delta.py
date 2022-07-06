@@ -27,7 +27,7 @@ def TEN_delta(V: Sequence[Mapping[int, float]],
     This choice preserves motonicity and was made to avoid equality comparisons between floats. 
     """
     l = init_l(V)
-    p = init_p(V)
+    p = [dict() for _ in V]
     min_taus = min_time_per_activity(V, activities)
     visited = [set() for _ in V]
     to_visit = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
@@ -46,8 +46,8 @@ def TEN_delta(V: Sequence[Mapping[int, float]],
         t_star = discretizer.activity_to_index(
             activities[i+1], t_star+discretizer.eps/2)
         if t_star <= discretizer.activity_to_index(activities[i+1], activities[i+1].end):
-            V, q = DDD_addRecursive(V, activities, q, i+1, t_star, discretizer)
-            
+            V, q = DDD_addRecursive(V, activities, q, i+1, t_star, discretizer, l=l)
+
 
         for t_next in V[i+1].keys():
             if t_next in visited[i+1]:

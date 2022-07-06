@@ -15,11 +15,6 @@ def init_l(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
     return l
 
 
-def init_p(V: Sequence[Mapping[int, float]]) -> Sequence[Mapping[int, float]]:
-    """Initializes the predecessor structure to None"""
-    return [dict([(t, None) for t in v.keys()]) for v in V]
-
-
 def min_time_per_activity(V: Sequence[Mapping[int, float]],
                           activities: Sequence[Activity]) -> Sequence[float]:
     """Returns a list with the minimum possible time to do each activity"""
@@ -37,7 +32,8 @@ def A_star_bound(V: Sequence[Mapping[int, float]],
 def TEN_solve(V: Sequence[Mapping[int, float]],
               activities: Sequence[Activity],
               q: Sequence[Mapping[int, float]],
-              Q: float, *args) -> Solution:
+              Q: float,
+              *args) -> Solution:
     """Solves the TDASP in a Time Expanded Network, implements Algorithm 1 of the paper
     https://www.sciencedirect.com/science/article/pii/S0377221721009838?
 
@@ -50,7 +46,7 @@ def TEN_solve(V: Sequence[Mapping[int, float]],
     This choice preserves motonicity and was made to avoid equality comparisons between floats. 
     """
     l = init_l(V)
-    p = init_p(V)
+    p = [dict() for _ in V]
     min_taus = min_time_per_activity(V, activities)
     visited = [set() for _ in V]
     to_visit = [(A_star_bound(V, activities, min_taus, 0, t), 0, t)
