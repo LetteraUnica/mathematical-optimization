@@ -1,3 +1,4 @@
+import sys
 from typing import Mapping, Sequence, Tuple
 
 from ..activity import Activity
@@ -26,7 +27,9 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
                      activities: Sequence[Activity],
                      q: Sequence[Mapping[int, float]],
                      i: int, t: int,
-                     discretizer: TimeDiscretizer) -> Tuple[Sequence[Mapping[int, float]], Sequence[Mapping[int, float]]]:
+                     discretizer: TimeDiscretizer,
+                     l: Sequence[Mapping[int, float]] = None,
+                     ) -> Tuple[Sequence[Mapping[int, float]], Sequence[Mapping[int, float]]]:
     if t in V[i]:
         return V, q
 
@@ -34,6 +37,8 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
     eps = discretizer.eps
     time = discretizer.activity_to_time(activity, t)
     V[i][t] = time
+    if l is not None:
+        l[i][t] = 0 if i==0 else sys.float_info.max
 
     if t == discretizer.activity_to_index(activity, activity.end):
         q[i][t] = activity.resources(time)
@@ -66,7 +71,7 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
     else:
         next_t = discretizer.activity_to_index(
             activities[i+1], activity.completion_time(time)+eps/2)
-        return DDD_addRecursive(V, activities, q, i+1, next_t, discretizer)
+        return DDD_addRecursive(V, activities, q, i+1, next_t, discretizer, l=l)
 
 
 def DDD_solve(activities: Sequence[Activity],
