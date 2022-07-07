@@ -1,34 +1,25 @@
+from typing import Callable, Tuple
 import numpy as np
 
 
-def my_tau(start):
+def my_tau(start: float) -> float:
     return np.sin(start)/2 + 2
 
 
-def my_rho(start):
+def my_rho(start: float) -> float:
     return np.cos(start)/2 + 2
 
 
-def gasoline_consumption(speed):
-    if speed > 50:
-        return 5 + 3e-4*(speed-50)**2
+def satisfies_fifo_property(f: Callable[[float], float], interval: Tuple[int], n_samples: int = 1000):
+    """Raises an exception if the given function does not satisfy the FIFO property.
+    FIFO property: a+f(a) <= b+f(b) if a <= b
 
-    return 5 + 3e-3*(speed-50)**2
-
-
-def ev_consumption(speed):
-    if speed > 10:
-        return 5 + 2e-4*(speed-10)**2
-
-    return 5 + 3e-2*(speed-10)**2
-
-
-def traffic_over_space(point, sigma=10):
-    x, y = point
-    return np.exp(-((x**2 + y**2)/sigma**2))
-
-
-def traffic_over_time(time, first_rush_hour: float = 480., second_rush_hour: float = 1020., sigma: float = 240.):
-    """Traffic distribution over time considering two rush hours.
-    The time is given in minutes since the start of day"""
-    return 0.7*np.exp(-((time - first_rush_hour)/sigma)**2) + np.exp(-((time - second_rush_hour)/sigma)**2)
+    Args:
+        f (Callable[[float], float]): function
+        interval (Tuple[int]): interval where to check for the FIFO property
+        n_samples (int, optional): Samples to use for the checking. Defaults to 1000.
+    """
+    t = np.linspace(interval[0], interval[1], n_samples)
+    for i in range(len(t)-1):
+        if t[i] + f(t[i]) > t[i+1] + f(t[i+1]):
+            raise Exception("f does not satisfies_fifo_property at t: ", t[i])

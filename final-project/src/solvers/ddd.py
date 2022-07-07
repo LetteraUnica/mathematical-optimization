@@ -9,6 +9,9 @@ from .ten import TEN_solve
 
 def DDD_initialize(activities: Sequence[Activity],
                    discretizer: TimeDiscretizer) -> Tuple[Sequence[Mapping[int, float]], Sequence[Mapping[int, float]]]:
+    """Implements Algorithm 2 of the paper, Initializes a partially time expanded network
+    with the start and end vertexes of each activity
+    """
     V = [dict() for _ in activities]
     q = [dict() for _ in activities]
     for i in range(len(activities)-1, -1, -1):
@@ -30,6 +33,7 @@ def DDD_addRecursive(V: Sequence[Mapping[int, float]],
                      discretizer: TimeDiscretizer,
                      l: Sequence[Mapping[int, float]] = None,
                      ) -> Tuple[Sequence[Mapping[int, float]], Sequence[Mapping[int, float]]]:
+    """Implements Algorithm 2 of the paper"""
     if t in V[i]:
         return V, q
 
@@ -78,7 +82,9 @@ def DDD_solve(activities: Sequence[Activity],
               Q: float,
               discretizer: TimeDiscretizer,
               TEN_solver = TEN_solve) -> Solution:
-    V, q = DDD_initialize(activities, discretizer)
+    """Implements Algorithm 3 of the paper, solves TDASP/R in a partially time expanded network"""
+    
+    V, q = DDD_initialize(activities, discretizer)    
 
     while True:
         solution = TEN_solver(V, activities, q, Q, discretizer)
