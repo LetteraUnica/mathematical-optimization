@@ -42,12 +42,14 @@ class Solution:
     def resources_consumed(self) -> float:
         return sum(self.activity_resouce_consumption())
 
-    def summary(self) -> Tuple[float, float, int]:
-        return self.completion_time(), self.resources_consumed(), self.n_visited_nodes
+    def n_replenishments(self) -> int:
+        return len([li for p, li in zip(self.path, self.l) if li[p] < 1e-8]) - 1
 
     def __repr__(self) -> str:
-        duration, resources, nodes_visited = self.summary()
+        duration, resources = self.completion_time(), self.resources_consumed()
+        nodes_visited, n_replenishments = self.n_visited_nodes, self.n_replenishments()
 
         return f"""Completion time: {duration:.2f}
 Resources consumed: {resources:.2f}
-Nodes visited: {nodes_visited}"""
+Nodes visited: {nodes_visited}
+Number of replenishments: {n_replenishments}"""

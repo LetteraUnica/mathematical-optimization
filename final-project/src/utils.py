@@ -11,3 +11,11 @@ def fill_like(V: List[List[Any]], fill_value: Any) -> List[List[Any]]:
 T = TypeVar('T')
 def clamp(x: T, low: T, high: T) -> T:
     return max(low, min(x, high))
+
+
+def line_between_two_points(x1:np.ndarray, y1:np.ndarray, x2:np.ndarray, y2:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """Returns in order the slope and intercept of all the lines from the given points"""
+    a = (y2 - y1) / (x2 - x1)
+    b = y1 - a*x1
+
+    return a, b

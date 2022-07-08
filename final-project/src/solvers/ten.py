@@ -75,5 +75,5 @@ def TEN_solve(V: Sequence[Mapping[int, float]],
             if new_consumption < l[i+1][t_next]:
                 l[i+1][t_next] = new_consumption
                 p[i+1][t_next] = t
-
+                
     return None
