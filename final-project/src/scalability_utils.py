@@ -1,6 +1,8 @@
 import time
 
 import numpy as np
+
+from .utils import generate_V_and_q
 from .activity import Activity
 
 import pylab as pl
@@ -20,13 +22,7 @@ def mock_problem(n_activities, discretizer):
                   for i in range(n_activities)]
 
     # Fill times
-    V = []
-    q = []
-    for activity in activities:
-        times = discretizer.discretize_activity(activity)
-        V.append(dict([(i, time) for i, time in enumerate(times)]))
-        q.append(dict([(i, activity.resources(time))
-                       for i, time in enumerate(times)]))
+    V, q = generate_V_and_q(activities, discretizer)
 
     return activities, V, q
 
