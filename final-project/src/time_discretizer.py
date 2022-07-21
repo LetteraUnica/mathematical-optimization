@@ -1,13 +1,17 @@
-from typing import Sequence
+from typing import Sequence, TypeVar
 import numpy as np
 from .activity import Activity
-from .utils import clamp
 
 
 class TimeDiscretizer:
     def __init__(self, eps: float):
         self.eps = eps
 
+    T = TypeVar('T')
+    @staticmethod
+    def clamp(x: T, low: T, high: T) -> T:
+        return max(low, min(x, high))
+        
     def discretize_time(self, start: float, end: float) -> Sequence[float]:
         """Discretizes the time with a granularity of eps
 
@@ -35,7 +39,7 @@ class TimeDiscretizer:
         the index points to, equivalent to discretize_time(start, end)[index] but much faster
         """
         time = start + self.eps*index
-        return clamp(time, start, end)
+        return self.clamp(time, start, end)
 
     def time_to_index(self, start: float, end: float, time: float) -> int:
         """Given a time, start and end, returns the index
@@ -43,7 +47,7 @@ class TimeDiscretizer:
         """
         n_steps = int((end - start) / self.eps) + 2
         n_steps -= 1 if end % self.eps == 0 else 0
-        return clamp(int((time - start + self.eps/2) / self.eps), 0, n_steps-1)
+        return self.clamp(int((time - start + self.eps/2) / self.eps), 0, n_steps-1)
 
     def activity_to_time(self, activity: Activity, index: int) -> float:
         """Given an index and an activity, returns the activity time
