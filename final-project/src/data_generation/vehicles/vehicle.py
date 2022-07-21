@@ -1,4 +1,4 @@
-from tenacity import abstractmethod
+from abc import abstractmethod
 
 
 class Vehicle:
