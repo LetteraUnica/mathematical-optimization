@@ -19,7 +19,8 @@ class TimeDiscretizer:
             Sequence[float]: list of discretized times [start, start+eps, start+2*eps, ..., end]
         """
         times = list(np.arange(start, end, self.eps))
-        times.append(end)
+        if np.abs(times[-1] - end) > 1e-6: 
+            times.append(end)
         return times
 
     def discretize_activity(self, activity: Activity) -> Sequence[float]:
@@ -45,9 +46,8 @@ class TimeDiscretizer:
         """Given a time, start and end, returns the index
         such that time = index_to_time(start, end, index)
         """
-        n_steps = int((end - start) / self.eps) + 2
-        n_steps -= 1 if end % self.eps == 0 else 0
-        return self.clamp(int((time - start + self.eps/2) / self.eps), 0, n_steps-1)
+        n_steps = int((end - start) / self.eps - 0.5) + 2
+        return self.clamp(int((time - start) / self.eps + 0.5), 0, n_steps-1)
 
     def activity_to_time(self, activity: Activity, index: int) -> float:
         """Given an index and an activity, returns the activity time

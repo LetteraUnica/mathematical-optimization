@@ -2,7 +2,7 @@ from typing import Callable
 
 import numpy as np
 
-def traffic_over_space(point, sigma=10):
+def traffic_over_space(point, sigma=5):
     x, y = point
     return np.exp(-((x**2 + y**2)/sigma**2))
 
@@ -22,6 +22,6 @@ class TrafficModel:
         self.traffic_over_time = traffic_over_time
 
     def traffic_level(self, point: np.ndarray, time: float):
-        traffic = 1 / (1 - np.minimum(self.traffic_over_time(time), 0.8))
+        traffic = 1 / (1 - min(self.traffic_over_time(time), 0.8))
         sensitivity = self.traffic_over_space(point)
         return traffic*sensitivity + 1-sensitivity

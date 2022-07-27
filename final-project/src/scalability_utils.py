@@ -18,7 +18,7 @@ def duration(start_time: float) -> float:
 
 def mock_problem(n_activities, discretizer):
     # Generate activities
-    activities = [Activity(2*i, 4*(i+4), duration, resources, lambda x: 1)
+    activities = [Activity(4*i, 4*(i+4), duration, resources, lambda x: 2)
                   for i in range(n_activities)]
 
     # Fill times
@@ -37,7 +37,11 @@ def my_timeit(f, args, repeat=3):
     return np.mean(times), np.std(times)
 
 
-def plot_times(x, mus, stds, names):
-    for mu, std, name in zip(mus, stds, names):
-        pl.errorbar(x, mu, std, label=name)
+def plot_times(x, mus, names):
+    for mu, name in zip(mus, names):
+        pl.plot(x, mu, label=name)
     pl.legend()
+
+    pl.yscale("log")
+    pl.xscale("log")
+    pl.ylabel("Time [s]")
